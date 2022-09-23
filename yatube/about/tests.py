@@ -27,4 +27,3 @@ class StaticURLTests(TestCase):
                 response = self.guest_client.get(adress)
                 error_name: str = f'Ошибка: {adress} ожидал шаблон {template}'
                 self.assertTemplateUsed(response, template, error_name)
-

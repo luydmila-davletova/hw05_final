@@ -276,42 +276,19 @@ class FollowViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='auth1')
-        cls.user2 = User.objects.create_user(username='auth2')
-        cls.author = User.objects.create_user(username='someauthor')
+        cls.user = User.objects.create_user(username='user1')
+        cls.user2 = User.objects.create_user(username='user2')
+        cls.author = User.objects.create_user(username='author')
 
     def setUp(self):
-        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.authorized_client2 = Client()
         self.authorized_client2.force_login(self.user2)
 
-    def test_user_follower_authors(self):
-        """Посты доступны пользователю, который подписался на автора.
-           Увеличение подписок автора"""
-        count_follow = Follow.objects.filter(user=self.user).count()
-        data_follow = {'user': FollowViewsTest.user,
-                       'author': FollowViewsTest.author}
-        url_redirect = reverse(
-            'posts:profile',
-            kwargs={'username': self.author.username})
-        response = self.authorized_client.post(
-            reverse('posts:profile_follow', kwargs={
-                'username': self.author.username}),
-            data=data_follow, follow=True)
-        new_count_follow = Follow.objects.filter(
-            user=self.user).count()
-        self.assertTrue(Follow.objects.filter(
-                        user=self.user,
-                        author=self.author).exists())
-        self.assertRedirects(response, url_redirect)
-        self.assertEqual(count_follow + 1, new_count_follow)
-
     def test_follower_see_new_post(self):
         """Новая запись пользователя появляется в ленте тех,
-         кто на него подписан и не появляется в ленте тех,
-        кто не подписан."""
+         кто на него подписан"""
         new_post_follower = Post.objects.create(
             author=self.author,
             text='Текстовый текст',
@@ -325,3 +302,12 @@ class FollowViewsTest(TestCase):
         new_post = response.context['page_obj'].object_list[0]
         self.assertEqual(new_post_follower.text, new_post.text)
 
+    def test_follow_another_user(self):
+        """Авторизованный пользователь,
+        может подписываться на других пользователей"""
+        follow_count = Follow.objects.count()
+        self.authorized_client.get(reverse('posts:profile_follow',
+                                           kwargs={'username': self.user2}))
+        self.assertTrue(Follow.objects.filter(user=self.user,
+                                              author=self.user2).exists())
+        self.assertEqual(Follow.objects.count(), follow_count + 1)

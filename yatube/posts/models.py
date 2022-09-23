@@ -110,4 +110,3 @@ class Follow(models.Model):
         verbose_name_plural = 'Лента авторов'
         constraints = [models.UniqueConstraint(
             fields=['user', 'author'], name='unique_members')]
-

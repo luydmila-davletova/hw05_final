@@ -12,3 +12,4 @@ def get_page_context(request, posts):
     return {
         'page_obj': page_obj,
     }
+
