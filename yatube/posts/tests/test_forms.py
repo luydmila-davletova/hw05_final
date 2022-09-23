@@ -147,10 +147,11 @@ class CommentFormTest(TestCase):
         """Проверка запрета комментирования не авторизованого пользователя"""
         posts_count = Comment.objects.count()
         form_data = {'text': 'Тестовый коммент2'}
-        response = self.guest_client.post(reverse('posts:add_comment',
-                                                  kwargs={'post_id': self.post.id}),
-                                          data=form_data,
-                                          follow=True)
+        response = self.guest_client.post(
+            reverse('posts:add_comment',
+                    kwargs={'post_id': self.post.id}),
+            data=form_data,
+            follow=True)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         error_name2 = 'Комментарий добавлен в базу данных по ошибке'
         self.assertNotEqual(Comment.objects.count(),
