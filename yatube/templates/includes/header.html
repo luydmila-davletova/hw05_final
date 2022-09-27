@@ -6,7 +6,6 @@
         <img src="{% static 'img/logo.png' %}" width="30" height="30" class="d-inline-block align-top" alt="">
         <span style="color:red">Ya</span>tube
       </a>
-      {# Добавлено в спринте #}
       <ul class="nav nav-pills">
         <li class="nav-item">
           {% with request.resolver_match.view_name as view_name %}
@@ -35,10 +34,8 @@
         <li class="nav-item">
           <a class="nav-link link-light" href="{% url 'users:signup' %}">Регистрация</a>
         </li>
-
         {% endif %}
       </ul>
-      {# Конец добавленого в спринте #}
     </div>
   </nav>
   {% endwith %}

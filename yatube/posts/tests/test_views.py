@@ -112,46 +112,25 @@ class PostViewsTests(TestCase):
             author=self.user,
             image=self.uploaded
         )
+        self.comment = Comment.objects.create(post_id=self.post.id,
+                                              author=self.user,
+                                              text='Тестовый коммент')
 
-    def test_index_page_shows_correct_context(self):
-        """Шаблон index сформирован с правильным контекстом."""
-        response = self.authorized_client.get(reverse('posts:index'))
-        first_object = response.context.get('page_obj').object_list[0]
-        first_object_fields = {
-            first_object.text: self.post.text,
-            first_object.author: self.user,
-            first_object.group: self.group,
-            first_object.group.id: self.group.id,
-            first_object.image: self.post.image,
-        }
-
-        for item, expected in first_object_fields.items():
-            with self.subTest(item=item):
-                self.assertEqual(item, expected)
-
-    def test_group_posts_page_show_correct_context(self):
-        """Шаблон group_posts сформирован с правильным контекстом."""
-        response = (self.authorized_client.get(
-            reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'}))
-        )
-        self.assertEqual(response.context.get('group').title, self.group.title)
-        self.assertEqual(response.context.get('group').slug, self.group.slug)
-
-        post_object = response.context.get('page_obj').object_list[0]
+    def correct_context_for_pages(self, context):
+        """Проверка контекста для главной страницы, групп и профайла."""
         post_object_fields = {
-            post_object.text: self.post.text,
-            post_object.author: self.user,
-            post_object.group: self.group,
-            post_object.group.id: self.group.id,
-            post_object.image: self.post.image,
+            context.text: self.post.text,
+            context.author: self.user,
+            context.group: self.group,
+            context.group.id: self.group.id,
+            context.image: self.post.image,
         }
-
         for item, expected in post_object_fields.items():
             with self.subTest(item=item):
                 self.assertEqual(item, expected)
 
     def assert_post_response(self, response):
-        """Проверяем context"""
+        """Проверяем context форм"""
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
@@ -162,6 +141,20 @@ class PostViewsTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+
+    def test_index_page_shows_correct_context(self):
+        """Шаблон index сформирован с правильным контекстом."""
+        response = self.authorized_client.get(reverse('posts:index'))
+        self.correct_context_for_pages(response.context['page_obj'][0])
+
+    def test_group_posts_page_show_correct_context(self):
+        """Шаблон group_posts сформирован с правильным контекстом."""
+        response = (self.authorized_client.get(
+            reverse('posts:group_list', kwargs={'slug': f'{self.group.slug}'}))
+        )
+        self.assertEqual(response.context.get('group').title, self.group.title)
+        self.assertEqual(response.context.get('group').slug, self.group.slug)
+        self.correct_context_for_pages(response.context['page_obj'][0])
 
     def test_post_create_page_show_correct_context(self):
         """Шаблон post_create сформирован с правильным контекстом."""
@@ -185,6 +178,8 @@ class PostViewsTests(TestCase):
             response.context['post'].author: self.user,
             response.context['post'].group.id: self.post.group.id,
             response.context['post'].image: self.post.image,
+            response.context['comments'][0].text: 'Тестовый коммент',
+            response.context['comments'][0].author: self.user.username
         }
 
         for value, expected in post_text_0.items():
@@ -195,18 +190,8 @@ class PostViewsTests(TestCase):
         response = self.authorized_client.get(reverse(
             'posts:profile', kwargs={'username': self.post.author}))
         self.assertEqual(response.context['author'], self.post.author)
-        post_object = response.context.get('page_obj').object_list[0]
-        post_object_fields = {
-            post_object.text: self.post.text,
-            post_object.author: self.user,
-            post_object.group: self.group,
-            post_object.group.id: self.group.id,
-            post_object.image: self.post.image,
-        }
-
-        for item, expected in post_object_fields.items():
-            with self.subTest(item=item):
-                self.assertEqual(item, expected)
+        self.correct_context_for_pages(response.context['page_obj'][0])
+        self.assertTrue(response.context.get('following'))
 
     def test_not_added_in_foreign_group(self):
         """Пост при создании не добавляется в чужую группу."""
@@ -256,21 +241,6 @@ class CommentTest(TestCase):
                                         group=self.group,
                                         author=self.user)
 
-    def test_post_detail_page_show_correct_context(self):
-        """Шаблон post_detail сформирован с
-           правильным контекстом комментария."""
-        self.comment = Comment.objects.create(post_id=self.post.id,
-                                              author=self.user,
-                                              text='Тестовый коммент')
-        response = self.authorized_client.get(
-            reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
-        comments = {response.context['comments'][0].text: 'Тестовый коммент',
-                    response.context['comments'][0].author: self.user.username
-                    }
-        for value, expected in comments.items():
-            self.assertEqual(comments[value], expected)
-        self.assertTrue(response.context['form'], 'форма получена')
-
 
 class FollowViewsTest(TestCase):
     @classmethod
@@ -304,10 +274,38 @@ class FollowViewsTest(TestCase):
 
     def test_follow_another_user(self):
         """Авторизованный пользователь,
-        может подписываться на других пользователей"""
+        может подписываться на других пользователей."""
+        self.assertFalse(Follow.objects.filter(user=self.user,
+                                               author=self.user2).exists())
         follow_count = Follow.objects.count()
         self.authorized_client.get(reverse('posts:profile_follow',
                                            kwargs={'username': self.user2}))
+
         self.assertTrue(Follow.objects.filter(user=self.user,
                                               author=self.user2).exists())
         self.assertEqual(Follow.objects.count(), follow_count + 1)
+
+    def test_unfollow(self):
+        """Авторизованный пользователь,
+        может отписываться от других пользователей."""
+        follow_count = Follow.objects.count()
+        self.authorized_client.get(reverse('posts:profile_follow',
+                                           kwargs={'username': self.user2}))
+        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.authorized_client.get(reverse('posts:profile_unfollow',
+                                           kwargs={'username': self.user2}))
+        follow_count_after_unfollow = Follow.objects.count()
+        self.assertEqual(Follow.objects.count(), follow_count_after_unfollow)
+
+    def test_no_view_post_for_not_follower(self):
+        """Пост не появляется в ленте подписок,
+         если нет подписки на автора."""
+        new_post_follower = Post.objects.create(
+            author=FollowViewsTest.author,
+            text='Текстовый текст')
+        Follow.objects.create(user=self.user,
+                              author=self.author)
+        response_unfollower = self.authorized_client2.get(
+            reverse('posts:follow_index'))
+        new_post_unfollower = response_unfollower.context['page_obj']
+        self.assertNotIn(new_post_follower, new_post_unfollower)

@@ -125,23 +125,24 @@ class CommentFormTest(TestCase):
     def test_create_comment(self):
         """Проверка создания комментария"""
         comment_count = Comment.objects.count()
-        form_data = {'post_id': self.post.id,
-                     'text': 'Тестовый коммент2'}
+        comment_before = [comment.id for comment in Comment.objects.all()]
+        form_data = {
+            'post_id': self.post.id,
+            'text': 'Тестовый коммент2',
+        }
         response = self.authorized_client.post(
             reverse('posts:add_comment',
                     kwargs={'post_id': self.post.id}),
-            data=form_data, follow=True)
-        error_name1 = 'Данные комментария не совпадают'
+            data=form_data,
+            follow=True
+        )
+        comments_now = Comment.objects.exclude(id__in=comment_before)
+        self.assertEqual(len(comments_now), 1)
+        comment = comments_now[0]
+        self.assertEqual(Comment.objects.count(), comment_count + 1)
+        self.assertEqual(comment.text, form_data['text'])
+        self.assertEqual(comment.post_id, form_data['post_id'])
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertTrue(Comment.objects.filter(
-            text='Тестовый коммент2',
-            post=self.post.id,
-            author=self.user
-        ).exists(), error_name1)
-        error_name2 = 'Комментарий не добавлен в базу данных'
-        self.assertEqual(Comment.objects.count(),
-                         comment_count + 1,
-                         error_name2)
 
     def test_no_edit_comment(self):
         """Проверка запрета комментирования не авторизованого пользователя"""
