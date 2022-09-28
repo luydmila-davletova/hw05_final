@@ -187,7 +187,6 @@ class PostViewsTests(TestCase):
             'posts:profile', kwargs={'username': self.post.author}))
         self.assertEqual(response.context['author'], self.post.author)
         self.correct_attributes_post(response.context['page_obj'][0])
-        self.assertTrue(response.context.get('following'))
 
     def test_not_added_in_foreign_group(self):
         """Пост при создании не добавляется в чужую группу."""
