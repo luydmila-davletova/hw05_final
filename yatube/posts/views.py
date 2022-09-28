@@ -29,8 +29,10 @@ def group_posts(request, slug):
 def profile(request, username):
     """Выводит шаблон профайла пользователя"""
     author = get_object_or_404(User, username=username)
-    following = (Follow.objects.filter(
-                    author=author).exists())
+    following = (
+        Follow.objects.filter(
+            author=author).exists()
+    )
     context = {
         'author': author,
         'following': following,
