@@ -29,12 +29,11 @@ def group_posts(request, slug):
 def profile(request, username):
     """Выводит шаблон профайла пользователя"""
     author = get_object_or_404(User, username=username)
-    client_autorize = request.user.is_authenticated
+    following = (Follow.objects.filter(
+                    author=author).exists())
     context = {
         'author': author,
-        'following': True,
-        'client_autorize': client_autorize,
-
+        'following': following,
     }
     context.update(get_page_context(request, author.posts.all()))
 
@@ -97,7 +96,6 @@ def post_edit(request, post_id):
     """Выводит шаблон редактирования поста."""
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
-
         return redirect('posts:post_detail', post_id=post.id)
 
     form = PostForm(

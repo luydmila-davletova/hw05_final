@@ -116,14 +116,15 @@ class PostViewsTests(TestCase):
                                               author=self.user,
                                               text='Тестовый коммент')
 
-    def correct_context_for_pages(self, context):
-        """Проверка контекста для главной страницы, групп и профайла."""
+    def correct_attributes_post(self, post):
+        """Проверка аттрибутов поста для
+         главной страницы, групп и профайла."""
         post_object_fields = {
-            context.text: self.post.text,
-            context.author: self.user,
-            context.group: self.group,
-            context.group.id: self.group.id,
-            context.image: self.post.image,
+            post.text: self.post.text,
+            post.author: self.user,
+            post.group: self.group,
+            post.group.id: self.group.id,
+            post.image: self.post.image,
         }
         for item, expected in post_object_fields.items():
             with self.subTest(item=item):
@@ -145,7 +146,7 @@ class PostViewsTests(TestCase):
     def test_index_page_shows_correct_context(self):
         """Шаблон index сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse('posts:index'))
-        self.correct_context_for_pages(response.context['page_obj'][0])
+        self.correct_attributes_post(response.context['page_obj'][0])
 
     def test_group_posts_page_show_correct_context(self):
         """Шаблон group_posts сформирован с правильным контекстом."""
@@ -154,7 +155,7 @@ class PostViewsTests(TestCase):
         )
         self.assertEqual(response.context.get('group').title, self.group.title)
         self.assertEqual(response.context.get('group').slug, self.group.slug)
-        self.correct_context_for_pages(response.context['page_obj'][0])
+        self.correct_attributes_post(response.context['page_obj'][0])
 
     def test_post_create_page_show_correct_context(self):
         """Шаблон post_create сформирован с правильным контекстом."""
@@ -173,24 +174,19 @@ class PostViewsTests(TestCase):
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
         post_text_0 = {
-            response.context['post'].text: self.post.text,
-            response.context['post'].group: self.group,
-            response.context['post'].author: self.user,
-            response.context['post'].group.id: self.post.group.id,
-            response.context['post'].image: self.post.image,
             response.context['comments'][0].text: 'Тестовый коммент',
             response.context['comments'][0].author: self.user.username
         }
-
         for value, expected in post_text_0.items():
             self.assertEqual(post_text_0[value], expected)
+        self.correct_attributes_post(response.context['post'])
 
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
         response = self.authorized_client.get(reverse(
             'posts:profile', kwargs={'username': self.post.author}))
         self.assertEqual(response.context['author'], self.post.author)
-        self.correct_context_for_pages(response.context['page_obj'][0])
+        self.correct_attributes_post(response.context['page_obj'][0])
         self.assertTrue(response.context.get('following'))
 
     def test_not_added_in_foreign_group(self):
@@ -222,24 +218,6 @@ class PostViewsTests(TestCase):
         cache.clear()
         after_clear = self.authorized_client.get(reverse('posts:index'))
         self.assertNotEqual(first_item_after, after_clear)
-
-
-class CommentTest(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = User.objects.create_user(username='auth1')
-        cls.user2 = User.objects.create_user(username='auth2')
-
-    def setUp(self):
-        self.guest_client = Client()
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-        self.group = Group.objects.create(title='Тестовая группа',
-                                          slug='test_group')
-        self.post = Post.objects.create(text='Тестовый текст',
-                                        group=self.group,
-                                        author=self.user)
 
 
 class FollowViewsTest(TestCase):
@@ -288,14 +266,19 @@ class FollowViewsTest(TestCase):
     def test_unfollow(self):
         """Авторизованный пользователь,
         может отписываться от других пользователей."""
-        follow_count = Follow.objects.count()
-        self.authorized_client.get(reverse('posts:profile_follow',
-                                           kwargs={'username': self.user2}))
-        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        Follow.objects.create(
+            user=self.user,
+            author=self.author,
+        )
+        follow_count_before = Follow.objects.count()
+        Follow.objects.filter(
+            user=self.user,
+            author=self.author,
+        ).delete()
         self.authorized_client.get(reverse('posts:profile_unfollow',
                                            kwargs={'username': self.user2}))
-        follow_count_after_unfollow = Follow.objects.count()
-        self.assertEqual(Follow.objects.count(), follow_count_after_unfollow)
+        follow_count_after = Follow.objects.count()
+        self.assertEqual(follow_count_before - 1, follow_count_after)
 
     def test_no_view_post_for_not_follower(self):
         """Пост не появляется в ленте подписок,
