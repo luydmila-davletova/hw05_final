@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% load thumbnail %}
 {% block title %}
-Профайл пользователя {{ username }}
+    Профайл пользователя {{ username }}
 {% endblock %}
 {% block content %}
     <h1>Все посты пользователя {{ author.get_full_name }} </h1>
     <h3>Всего постов: {{ author.posts.count }} </h3>
     <h3>Подписчиков: {{ author.follower.count }} </h3>
     <h3>Подписок: {{ author.following.count }} </h3>
-    {% if request.user.is_authenticated%}
+    {% if request.user.is_authenticated %}
     {% if author != request.user %}
         {% if following %}
             <a
@@ -29,8 +29,8 @@
     {% endif %}
     {% for post in page_obj %}
         {% include 'posts/includes/list_posts.html' with flag_group_link=True  %}
-    {% if not forloop.last %}
-    <hr>{% endif %}
+        {% if not forloop.last %}
+        <hr>{% endif %}
     {% endfor %}
     {% include 'posts/includes/paginator.html' %}
 {% endblock %}

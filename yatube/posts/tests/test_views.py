@@ -76,6 +76,7 @@ class PostViewsTests(TestCase):
         super().setUpClass()
 
         cls.user = User.objects.create_user(username='author')
+        cls.author = User.objects.create_user(username='author2')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-group',
@@ -93,6 +94,8 @@ class PostViewsTests(TestCase):
         self.authorized_client.force_login(self.user)
         self.user2 = User.objects.create_user(username='auth2')
         self.authorized_client.force_login(self.user)
+        self.authorized_client2 = Client()
+        self.authorized_client2.force_login(self.user)
 
         self.small_gif = (
             b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -112,9 +115,11 @@ class PostViewsTests(TestCase):
             author=self.user,
             image=self.uploaded
         )
-        self.comment = Comment.objects.create(post_id=self.post.id,
-                                              author=self.user,
-                                              text='Тестовый коммент')
+        self.comment = Comment.objects.create(
+            post_id=self.post.id,
+            author=self.user,
+            text='Тестовый коммент',
+        )
 
     def correct_attributes_post(self, post):
         """Проверка аттрибутов поста для
@@ -174,8 +179,8 @@ class PostViewsTests(TestCase):
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
         post_text_0 = {
-            response.context['comments'][0].text: 'Тестовый коммент',
-            response.context['comments'][0].author: self.user.username
+            response.context['comments'][0].text: self.comment.text,
+            response.context['comments'][0].author: self.user.username,
         }
         for value, expected in post_text_0.items():
             self.assertEqual(post_text_0[value], expected)
@@ -183,10 +188,14 @@ class PostViewsTests(TestCase):
 
     def test_profile_page_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
+        Follow.objects.create(
+            user=self.user,
+            author=self.post.author)
         response = self.authorized_client.get(reverse(
             'posts:profile', kwargs={'username': self.post.author}))
         self.assertEqual(response.context['author'], self.post.author)
         self.correct_attributes_post(response.context['page_obj'][0])
+        self.assertEqual(response.context['following'], True)
 
     def test_not_added_in_foreign_group(self):
         """Пост при создании не добавляется в чужую группу."""
@@ -196,10 +205,24 @@ class PostViewsTests(TestCase):
             reverse('posts:group_list', args=[self.group.slug]))
         self.assertNotEqual(response.context['page_obj'][0], group2)
 
-    def test_post_added_in_one_place_in_context(self):
-        """Пост при создании добавляется в первое место в контексте."""
+    def test_post_added_in_one_place_in_context_group(self):
+        """Пост при создании добавляется
+         в первое место в контексте group."""
         response = self.authorized_client.get(
             reverse('posts:group_list', args=[self.group.slug]))
+        self.assertEqual(response.context['page_obj'][0], self.post)
+
+    def test_post_added_in_one_place_in_context_profile(self):
+        """Пост при создании добавляется
+         в первое место в контексте profile."""
+        response = self.authorized_client.get(
+            reverse('posts:profile', kwargs={'username': self.post.author}))
+        self.assertEqual(response.context['page_obj'][0], self.post)
+
+    def test_post_added_in_one_place_in_context_index(self):
+        """Пост при создании добавляется
+         в первое место в контексте index."""
+        response = self.authorized_client.get(reverse('posts:index'))
         self.assertEqual(response.context['page_obj'][0], self.post)
 
     def test_cache_context(self):

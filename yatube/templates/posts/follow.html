@@ -4,13 +4,13 @@
     Посты автора
 {% endblock %}
 {% block content %}
-{% include 'posts/includes/switcher.html' %}
-        <h1>Посты автора</h1>
-        {% cache 20 index_page %}
-        {% for post in page_obj %}
+    {% include 'posts/includes/switcher.html' %}
+    <h1>Посты автора</h1>
+    {% cache 20 index_page %}
+    {% for post in page_obj %}
         {% include 'posts/includes/list_posts.html' with flag_group_link=True %}
         {% if not forloop.last %}<hr>{% endif %}
-        {% endfor %}
-        {% endcache %}
-        {% include 'posts/includes/paginator.html' %}
+    {% endfor %}
+    {% endcache %}
+    {% include 'posts/includes/paginator.html' %}
 {% endblock %}

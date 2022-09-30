@@ -2,9 +2,9 @@
 
 {% block title %}
 {% if is_edit %}
-Редактировать пост
+    Редактировать пост
 {% else %}
-Новый пост
+    Новый пост
 {% endif %}
 {% endblock %}
 
@@ -16,9 +16,9 @@
             <div class="card">
                 <div class="card-header">
                     {% if is_edit %}
-                    Редактировать пост
+                        Редактировать пост
                     {% else %}
-                    Новый пост
+                        Новый пост
                     {% endif %}
                 </div>
                 <div class="card-body">
@@ -35,9 +35,9 @@
                         {% include 'includes/form_string.html' %}
                         <button type="submit" class="btn btn-primary">
                             {% if is_edit %}
-                            Сохранить
+                                Сохранить
                             {% else %}
-                            Добавить
+                                Добавить
                             {% endif %}
                         </button>
                 </div>
