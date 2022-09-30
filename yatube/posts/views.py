@@ -34,8 +34,7 @@ def profile(request, username):
         Follow.objects.filter(
             user=request.user,
             author=author,
-        ).exists(),
-    )
+        ).exists())
     context = {
         'author': author,
         'following': following,
