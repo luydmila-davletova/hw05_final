@@ -33,6 +33,7 @@
                     >
                         {% csrf_token %}
                         {% include 'includes/form_string.html' %}
+                        <div class="col-md-6 offset-md-5">
                         <button type="submit" class="btn btn-primary">
                             {% if is_edit %}
                                 Сохранить
@@ -40,6 +41,7 @@
                                 Добавить
                             {% endif %}
                         </button>
+                        </div>
                 </div>
                 </form>
             </div>

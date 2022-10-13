@@ -7,6 +7,8 @@ SECRET_KEY = '2i_uj7_bj5(s_qh22m7pag_%k8a&0q17@@d=og^th32k6p%$p)'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    'www.myyatube.pythonanywhere.com',
+    'myyatube.pythonanywhere.com',
     'localhost',
     '127.0.0.1',
     '[::1]',
