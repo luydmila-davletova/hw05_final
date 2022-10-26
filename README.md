@@ -25,7 +25,7 @@ source venv/Scripts/activate
 pip install -r requirements.txt
 ```
 
-***- Примените миграции:***
+***- Выполните миграции:***
 ```
 python manage.py migrate
 ```
