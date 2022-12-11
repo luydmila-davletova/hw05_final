@@ -30,19 +30,20 @@
                     все посты пользователя
                 </a>
             </li>
+            <li class="list-group-item">
+                 {% if post.author == user %}
+                     <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
+                         редактировать запись
+                     </a>
+                 {% endif %}
+            </li>
         </ul>
     </aside>
     <article class="col-12 col-md-9">
-        {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-        <img class="card-img my-2" src="{{ im.url }}">
+        {% thumbnail post.image "1280x840"  upscale=True as im %}
+            <img class="img-thumbnail col-md-5 mx-md-3" src="{{ im.url }}">
         {% endthumbnail %}
         {{ post.text|linebreaks }}
-        {% if post.author == user %}
-        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
-            редактировать запись
-            {% endif %}
-        </a>
-        {% include 'posts/includes/comments.html' %}
     </article>
 </div>
 {% endblock %}

@@ -81,7 +81,10 @@ def add_comment(request, post_id):
 @login_required
 def post_create(request):
     """Выводит шаблон создания поста."""
-    form_post = PostForm(request.POST or None)
+    form_post = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+    )
     if form_post.is_valid():
         form_post = form_post.save(commit=False)
         form_post.author = request.user

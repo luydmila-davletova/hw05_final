@@ -2,23 +2,43 @@
 <article>
     <ul>
         <li>
-            {{ post.author.get_full_name }}
-            <a href="{% url 'posts:profile' post.author %}">все посты пользователя</a>
+            {% if post.author.get_full_name %}
+            <a href="{% url 'posts:profile' post.author.username %}" style="color:#2e4a62">{{ post.author.get_full_name }}</a>
+            {% else %}
+            <a href="{% url 'posts:profile' post.author.username %}" style="color:#2e4a62">{{ post.author }}</a>
+            {% endif %}
         </li>
         <li>
             Дата публикации: {{ post.pub_date|date:"d E Y" }}
         </li>
     </ul>
-    {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
-    <img class="card-img my-2" src="{{ im.url }}">
-    {% endthumbnail %}
-    {{ post.text|linebreaks }}
-    <a href="{% url 'posts:post_detail' post.id %}">подробная информация</a>
-    {% if post.group %}
-    {% if flag_group_link %}
+    <div class="clearfix">
+        {% thumbnail post.image "1280x840" crop="center" upscale=True as im %}
+            <img class="img-thumbnail col-md-5 float-md-start mx-md-3" src="{{ im.url }}">
+        {% endthumbnail %}
+        <p>{{ post.text|linebreaks }}</p>
+    </div>
     <br>
-    <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
-    </br>
+    <p>
+        <a class="btn btn-primary" href="{% url 'posts:post_detail' post.id %}">
+            подробная информация
+        </a>
+        {% if post.author == request.user %}
+            <span>|</span>
+            <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
+                редактировать
+            </a>
+        {% endif %}
+        {% if post.group %}
+        {% if flag_group_link %}
+            <span>|</span>
+            <a class="btn btn-primary" href="{% url 'posts:group_list' post.group.slug %}">
+                все записи группы
+            </a>
+        </p>
+        {% endif %}
+    {% if not forloop.last %}
+    <hr>
     {% endif %}
     {% endif %}
 </article>
