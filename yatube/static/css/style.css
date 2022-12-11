@@ -1,0 +1,105 @@
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Light.ttf');
+}
+navbar-light {
+    background-color: #2e4a62;
+}
+
+body {
+  font: 500 16px Montserrat;
+  line-height: 2;
+  color: black;
+  background: 20;
+
+}
+.row {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+
+a {
+  color: blue;
+  text-decoration: none;
+  font-weight: 500;
+}
+a:hover {
+    color: black;
+   }
+h2 {
+  font-size: 26px;
+  text-transform: uppercase;
+  color: black;
+  font-weight: 800;
+}
+h4 {
+  font-size: 20px;
+  line-height: 1.375em;
+  color: black;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+.btn-link {
+    color: #000000;
+
+}
+.btn-link:hover, .btn-link:active {
+    color: #2d2d2d;
+
+}
+.btn-primary {
+    color: white;
+    background-color: #2e4a62;
+    border-color: white;
+    margin: 0px auto;
+
+}
+.btn-primary:hover, .btn-primary:active {
+    color: ;
+    background-color: #2e4a62;
+    border-color: #2e4a62;
+
+}
+.nav-tabs {
+  font: 300 15px Montserrat;
+  color: white;
+
+}
+.nav-tabs .nav-link.active {
+  background: #2e4a62;
+}
+
+.navbar-light .navbar-nav {
+    color: #234512;
+}
+.container-fluid {
+  padding: 60px 50px;
+}
+.bg-grey {
+  background-color: #ececec;
+}
+.item h4 {
+  font-size: 30px;
+  line-height: 1.375em;
+  font-weight: 400;
+  font-style: italic;
+  margin: 70px 0;
+}
+.slide {
+  -webkit-animation-name: slide;
+  -webkit-animation-duration: 1s;
+}
+@-webkit-keyframes slide {
+  0% {
+    opacity: 0;
+    -webkit-transform: translateY(70%);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: translateY(0%);
+  }
+
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
